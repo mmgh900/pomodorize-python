@@ -31,7 +31,9 @@ class PomodoroApp:
         # Initialize pygame mixer for sound
         pygame.mixer.init()
         self.start_sound = pygame.mixer.Sound("start_work.mp3")
-        self.end_sound = pygame.mixer.Sound("end_work.mp3")
+        self.end_sound = pygame.mixer.Sound("end_work.mp3")# In __init__ method, after initializing the other sounds
+        self.end_break_sound = pygame.mixer.Sound("end_work.mp3")
+
 
         # Load or initialize user data
         self.load_user_data()
@@ -153,8 +155,7 @@ class PomodoroApp:
         self.cycles.set(0)
         self.current_cycle.set(1)
         self.timer_type = "Work"
-        self.remaining_time = int(float(self.work_time.get())) * 60
-
+        self.remaining_time = int(self.work_time.get()) * 60
         self.update_display()
         self.cycle_label.configure(text=f"Cycle: 1 / 4")
         self.progress_bar.set(0)
@@ -193,14 +194,16 @@ class PomodoroApp:
                 self.lock_screen()
                 self.run_break_timer()
             else:
+                self.end_break_sound.play()  # Add this line to play the break end sound
                 self.prepare_next_work_cycle()
-                self.start_sound.play()
-                self.run_work_timer()
+                self.start_button.configure(text="Start", command=self.start_timer)  # Ensure the start button is ready for the user to start the next cycle
+                self.timer_running = False  # Stop the timer running flag
+
 
     def update_display(self):
         mins, secs = divmod(self.remaining_time, 60)
         time_str = f"{mins:02d}:{secs:02d}"
-        self.time_label.configure(text=time_str)
+        self.time_label.configure(text=f"{time_str} - {self.timer_type}")
         
         if self.timer_type == "Work":
             total_seconds = int(float(self.work_time.get()) * 60)
